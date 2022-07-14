@@ -1,7 +1,7 @@
 apiVersion: postgres-operator.crunchydata.com/v1beta1
 kind: PostgresCluster
 metadata:
-  name: hippo-s3
+  name: xkube
 spec:
   image: registry.developers.crunchydata.com/crunchydata/crunchy-postgres:ubi8-14.3-0
   postgresVersion: 14
@@ -19,10 +19,25 @@ spec:
       - secret:
           name: pgo-s3-creds
       global:
-        repo1-path: /pgbackrest/postgres-operator/hippo-s3/repo1
+        #repo1-path: /pgbackrest/postgres-operator/hippo-s3/repo1
+        repo1-s3-uri-style: path
+        repo1-s3-verify-tls: 'n'
       repos:
       - name: repo1
         s3:
           bucket: dbean-obc-ef1e02fd-6d4b-48e8-ac51-a8ad958e638a 
-          endpoint: s3-openshift-storage.apps.cluster-m9z49.m9z49.sandbox389.opentlc.com
+          endpoint: s3-openshift-storage.apps.cluster.opentlc.com
           region: us-east-2
+  service:
+    type: LoadBalancer
+  standby:
+    enabled: true
+    repoName: repo1
+  patroni:
+    dynamicConfiguration:
+      postgresql:
+        pg_hba:
+          - 'hostssl replication replicator all scram-sha-256'
+          - 'hostssl all         all        all scram-sha-256'
+        parameters:
+          archive_timeout: 120
