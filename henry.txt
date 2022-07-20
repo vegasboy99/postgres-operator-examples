@@ -1,0 +1,33 @@
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: netty-secure-chat #Change
+    name: netty-secure-chat #Change
+  spec:
+    ports:
+    - name: 5432-tcp
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+    selector:
+      deploymentconfig: netty-secure-chat #Change since it's not a deploymentconfig
+    sessionAffinity: None
+    type: ClusterIP
+
+- apiVersion: v1
+  kind: Route
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: netty-secure-chat  #Change
+      name: netty-secure-chat #Change
+  spec:
+    port:
+      targetPort: 5432-tcp
+    tls:
+      termination: passthrough
+    to:
+      kind: Service
+      name: netty-secure-chat  #Change
